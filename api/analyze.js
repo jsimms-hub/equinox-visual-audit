@@ -111,26 +111,22 @@ Focus on what's VISIBLE. If you can't verify something, note it but don't penali
       })
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error?.message || 'Claude API request failed');
-    }
-
     const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Claude API Error:', data);
+      throw new Error(data.error?.message || `API error: ${response.status}`);
+    }
     
     // Return the evaluation
     return res.status(200).json({
       evaluation: data.content[0].text
     });
 
-} catch (error) {
-  console.error('Full error details:', JSON.stringify(error, null, 2));
-  console.error('Error message:', error.message);
-  console.error('Error response:', error.response?.data);
-  
-  return res.status(500).json({ 
-    error: error.response?.data?.error?.message || error.message || 'Internal server error',
-    details: error.response?.data
-  });
+  } catch (error) {
+    console.error('Error details:', error);
+    return res.status(500).json({ 
+      error: error.message || 'Analysis failed'
+    });
   }
 }
