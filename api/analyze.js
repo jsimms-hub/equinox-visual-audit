@@ -1,7 +1,7 @@
 // Serverless function for Vercel
 // This runs on the server and keeps your API key secure
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Enable CORS for your frontend
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
