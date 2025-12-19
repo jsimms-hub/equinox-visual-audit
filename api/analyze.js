@@ -29,9 +29,27 @@ export default async function handler(req, res) {
     // Your Claude API key (set as environment variable in Vercel)
     const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
 
-    if (!CLAUDE_API_KEY) {
-      return res.status(500).json({ error: 'API key not configured' });
-    }
+console.log('API Key exists:', !!CLAUDE_API_KEY);
+console.log('API Key starts with:', CLAUDE_API_KEY?.substring(0, 10));
+
+if (!CLAUDE_API_KEY) {
+  return res.status(500).json({ error: 'API key not configured' });
+}
+```
+
+**Commit this change.**
+
+---
+
+## **Then Test & Check Logs:**
+
+1. Wait for Vercel to redeploy (~30 sec)
+2. Try uploading a photo
+3. Go to **Runtime Logs** in Vercel
+4. Look for the lines:
+```
+   API Key exists: true/false
+   API Key starts with: sk-ant-...
 
     const RUBRIC = `
 You are a visual merchandising auditor for Equinox Shop retail locations. Evaluate the uploaded photo and provide a scored assessment.
