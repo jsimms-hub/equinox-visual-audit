@@ -1,20 +1,17 @@
-// Serverless function for Vercel
-// This runs on the server and keeps your API key secure
+// Serverless function for Vercel - CommonJS format
 
 module.exports = async function handler(req, res) {
-  // Enable CORS for your frontend
+  // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // Handle preflight request
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
 
-  // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -26,30 +23,14 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Missing image or fixture type' });
     }
 
-    // Your Claude API key (set as environment variable in Vercel)
     const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
 
-console.log('API Key exists:', !!CLAUDE_API_KEY);
-console.log('API Key starts with:', CLAUDE_API_KEY?.substring(0, 10));
+    console.log('API Key exists:', !!CLAUDE_API_KEY);
+    console.log('API Key prefix:', CLAUDE_API_KEY ? CLAUDE_API_KEY.substring(0, 15) : 'none');
 
-if (!CLAUDE_API_KEY) {
-  return res.status(500).json({ error: 'API key not configured' });
-}
-```
-
-**Commit this change.**
-
----
-
-## **Then Test & Check Logs:**
-
-1. Wait for Vercel to redeploy (~30 sec)
-2. Try uploading a photo
-3. Go to **Runtime Logs** in Vercel
-4. Look for the lines:
-```
-   API Key exists: true/false
-   API Key starts with: sk-ant-...
+    if (!CLAUDE_API_KEY) {
+      return res.status(500).json({ error: 'API key not configured' });
+    }
 
     const RUBRIC = `
 You are a visual merchandising auditor for Equinox Shop retail locations. Evaluate the uploaded photo and provide a scored assessment.
@@ -98,7 +79,8 @@ SCORING RUBRIC FOR MEN'S WALL:
 Focus on what's VISIBLE. If you can't verify something, note it but don't penalize heavily. Be direct and actionable.
 `;
 
-    // Call Claude API
+    console.log('Making API call to Claude...');
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -131,20 +113,22 @@ Focus on what's VISIBLE. If you can't verify something, note it but don't penali
 
     const data = await response.json();
 
+    console.log('API Response status:', response.status);
+
     if (!response.ok) {
-      console.error('Claude API Error:', data);
+      console.error('Claude API Error:', JSON.stringify(data, null, 2));
       throw new Error(data.error?.message || `API error: ${response.status}`);
     }
     
-    // Return the evaluation
     return res.status(200).json({
       evaluation: data.content[0].text
     });
 
   } catch (error) {
-    console.error('Error details:', error);
+    console.error('Error occurred:', error.message);
+    console.error('Error stack:', error.stack);
     return res.status(500).json({ 
       error: error.message || 'Analysis failed'
     });
   }
-}
+};
