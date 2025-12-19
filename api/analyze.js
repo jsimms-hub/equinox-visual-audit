@@ -123,10 +123,14 @@ Focus on what's VISIBLE. If you can't verify something, note it but don't penali
       evaluation: data.content[0].text
     });
 
-  } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({ 
-      error: error.message || 'Internal server error' 
-    });
+} catch (error) {
+  console.error('Full error details:', JSON.stringify(error, null, 2));
+  console.error('Error message:', error.message);
+  console.error('Error response:', error.response?.data);
+  
+  return res.status(500).json({ 
+    error: error.response?.data?.error?.message || error.message || 'Internal server error',
+    details: error.response?.data
+  });
   }
 }
