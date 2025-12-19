@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equinox Shop Visual Audit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: #aaaaaa;
+            font-size: 1.1rem;
+        }
+
+        .upload-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .upload-section.has-image {
+            border-style: solid;
+            border-color: #4CAF50;
+        }
+
+        #preview {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        #preview.show {
+            display: block;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .fixture-select {
+            margin-bottom: 30px;
+        }
+
+        select {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            cursor: pointer;
+        }
+
+        select option {
+            background: #2d2d2d;
+            color: white;
+        }
+
+        .analyze-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .analyze-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(245, 87, 108, 0.3);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #f5576c;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .results.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .score-display {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            border-radius: 12px;
+        }
+
+        .score-number {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .score-label {
+            font-size: 1.2rem;
+            color: #aaaaaa;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #f5576c;
+        }
+
+        .breakdown-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .breakdown-item.negative {
+            border-left-color: #f5576c;
+        }
+
+        .fixes-list, .working-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .fixes-list li, .working-list li {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .fixes-list li:before {
+            content: "→";
+            position: absolute;
+            left: 15px;
+            color: #f5576c;
+            font-weight: 700;
+        }
+
+        .working-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 15px;
+            color: #4CAF50;
+            font-weight: 700;
+        }
+
+        .error {
+            background: rgba(245, 87, 108, 0.2);
+            border: 2px solid #f5576c;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .score-number {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>EQUINOX SHOP</h1>
+            <p class="subtitle">Visual Merchandising Audit Tool</p>
+        </header>
+
+        <div class="fixture-select">
+            <select id="fixtureType">
+                <option value="">Select Fixture Type</option>
+                <option value="bags">Bags (Wall/Shelf Display)</option>
+                <option value="shoes">Shoes (Shelf Display)</option>
+                <option value="womens">Women's Wall Merchandising</option>
+                <option value="mens">Men's Wall Merchandising</option>
+            </select>
+        </div>
+
+        <div class="upload-section" id="uploadSection">
+            <img id="preview" alt="Preview">
+            <label for="photoUpload" class="upload-btn">
+                📸 Upload Photo
+            </label>
+            <input type="file" id="photoUpload" accept="image/*">
+        </div>
+
+        <button class="analyze-btn" id="analyzeBtn" onclick="analyzePhoto()" disabled>
+            Analyze Display
+        </button>
+
+        <div class="error" id="errorBox"></div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing display...</p>
+        </div>
+
+        <div class="results" id="results">
+            <div class="score-display">
+                <div class="score-number" id="scoreNumber">--</div>
+                <div class="score-label">Overall Score</div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Breakdown</h2>
+                <div id="breakdown"></div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Top Fixes</h2>
+                <ul class="fixes-list" id="fixesList"></ul>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">What's Working</h2>
+                <ul class="working-list" id="workingList"></ul>
+            </div>
+
+            <button class="analyze-btn" onclick="resetForm()">
+                Analyze Another Display
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // API endpoint - update this after deploying to Vercel
+        const API_ENDPOINT = '/api/analyze';
+
+        let currentImage = null;
+
+        document.getElementById('photoUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentImage = e.target.result;
+                    document.getElementById('preview').src = currentImage;
+                    document.getElementById('preview').classList.add('show');
+                    document.getElementById('uploadSection').classList.add('has-image');
+                    checkReadyToAnalyze();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('fixtureType').addEventListener('change', checkReadyToAnalyze);
+
+        function checkReadyToAnalyze() {
+            const hasImage = currentImage !== null;
+            const hasFixture = document.getElementById('fixtureType').value !== '';
+            document.getElementById('analyzeBtn').disabled = !(hasImage && hasFixture);
+        }
+
+        function showError(message) {
+            const errorBox = document.getElementById('errorBox');
+            errorBox.textContent = message;
+            errorBox.classList.add('show');
+            setTimeout(() => errorBox.classList.remove('show'), 5000);
+        }
+
+        async function analyzePhoto() {
+            const fixtureType = document.getElementById('fixtureType').value;
+            
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('analyzeBtn').disabled = true;
+
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        image: currentImage,
+                        fixtureType: fixtureType
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Analysis failed');
+                }
+
+                const data = await response.json();
+                displayResults(data.evaluation);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError(`Error: ${error.message}`);
+                document.getElementById('analyzeBtn').disabled = false;
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+            }
+        }
+
+        function displayResults(evaluation) {
+            // Parse the evaluation text
+            const scoreMatch = evaluation.match(/SCORE:\s*(\d+)/);
+            const score = scoreMatch ? scoreMatch[1] : '--';
+
+            // Extract sections
+            const breakdownSection = evaluation.match(/BREAKDOWN:(.*?)(?=TOP FIXES:|$)/s);
+            const fixesSection = evaluation.match(/TOP FIXES:(.*?)(?=WHAT'S WORKING:|$)/s);
+            const workingSection = evaluation.match(/WHAT'S WORKING:(.*?)$/s);
+
+            // Display score
+            document.getElementById('scoreNumber').textContent = score;
+
+            // Display breakdown
+            if (breakdownSection) {
+                const items = breakdownSection[1].trim().split('\n').filter(line => line.trim());
+                document.getElementById('breakdown').innerHTML = items.map(item => {
+                    const isNegative = item.includes('✗');
+                    return `<div class="breakdown-item ${isNegative ? 'negative' : ''}">${item}</div>`;
+                }).join('');
+            }
+
+            // Display fixes
+            if (fixesSection) {
+                const fixes = fixesSection[1].trim().split('\n').filter(line => line.trim() && /^\d+\./.test(line.trim()));
+                document.getElementById('fixesList').innerHTML = fixes.map(fix => 
+                    `<li>${fix.replace(/^\d+\.\s*/, '')}</li>`
+                ).join('');
+            }
+
+            // Display what's working
+            if (workingSection) {
+                const working = workingSection[1].trim().split('\n').filter(line => line.trim() && line.includes('-'));
+                document.getElementById('workingList').innerHTML = working.map(item => 
+                    `<li>${item.replace(/^-\s*/, '')}</li>`
+                ).join('');
+            }
+
+            document.getElementById('results').classList.add('show');
+        }
+
+        function resetForm() {
+            currentImage = null;
+            document.getElementById('preview').classList.remove('show');
+            document.getElementById('uploadSection').classList.remove('has-image');
+            document.getElementById('photoUpload').value = '';
+            document.getElementById('fixtureType').value = '';
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('analyzeBtn').disabled = true;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
