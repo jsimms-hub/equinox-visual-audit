@@ -89,7 +89,7 @@ Focus on what's VISIBLE. If you can't verify something, note it but don't penali
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20240620',
+        model: 'claude-sonnet-4-5-20250929',
         max_tokens: 2000,
         messages: [{
           role: 'user',
