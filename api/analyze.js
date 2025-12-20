@@ -19,23 +19,52 @@ module.exports = async function handler(req, res) {
   try {
     const { image, imageType, fixtureType } = req.body;
 
+    console.log('Received request:', {
+      hasImage: !!image,
+      imageType,
+      fixtureType,
+      imagePrefix: image ? image.substring(0, 30) : 'none'
+    });
+
     if (!image || !fixtureType) {
       return res.status(400).json({ error: 'Missing image or fixture type' });
     }
 
-    // Determine media type from imageType or default to jpeg
-    let mediaType = 'image/jpeg';
-    if (imageType) {
-      mediaType = imageType;
-    } else if (image.startsWith('data:')) {
-      const match = image.match(/data:(image\/[^;]+);/);
-      if (match) mediaType = match[1];
+    // Determine media type - support all common image formats
+    let mediaType = 'image/jpeg'; // default
+    let imageData = image;
+
+    // Extract data URL if present
+    if (image.startsWith('data:')) {
+      const match = image.match(/data:(image\/[^;]+);base64,(.+)/);
+      if (match) {
+        mediaType = match[1];
+        imageData = match[2];
+      } else {
+        // Fallback: just remove the prefix
+        imageData = image.split(',')[1] || image;
+      }
     }
 
-    const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
+    // Override with explicitly provided imageType if available
+    if (imageType && imageType.startsWith('image/')) {
+      mediaType = imageType;
+    }
 
-    console.log('API Key exists:', !!CLAUDE_API_KEY);
-    console.log('API Key prefix:', CLAUDE_API_KEY ? CLAUDE_API_KEY.substring(0, 15) : 'none');
+    // Map to Claude-supported formats
+    const supportedTypes = {
+      'image/jpeg': 'image/jpeg',
+      'image/jpg': 'image/jpeg',
+      'image/png': 'image/png',
+      'image/gif': 'image/gif',
+      'image/webp': 'image/webp'
+    };
+
+    mediaType = supportedTypes[mediaType.toLowerCase()] || 'image/jpeg';
+
+    console.log('Processed media type:', mediaType);
+
+    const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
 
     if (!CLAUDE_API_KEY) {
       return res.status(500).json({ error: 'API key not configured' });
@@ -116,7 +145,7 @@ Focus on what's VISIBLE. If you can't verify something, mark it N/A but don't pe
               source: {
                 type: 'base64',
                 media_type: mediaType,
-                data: image.split(',')[1] || image
+                data: imageData
               }
             },
             {
