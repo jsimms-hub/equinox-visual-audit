@@ -50,6 +50,14 @@ SCORE: [number]/100
 BREAKDOWN:
 ✓ [Category]: [X]/[XX] pts - [brief explanation]
 ✗ [Category]: [X]/[XX] pts - [brief explanation]
+⚠ [Category]: N/A - Cannot evaluate from photo
+
+CRITICAL FORMATTING RULES:
+1. Include ALL scoring categories in the breakdown
+2. If you cannot evaluate a category from the photo, use: "⚠ [Category Name]: N/A - Cannot evaluate from photo"
+3. Do NOT penalize the score for categories marked N/A
+4. Do NOT use "---" or "##" or leave blank lines in the breakdown
+5. Every breakdown line must start with ✓, ✗, or ⚠
 
 TOP FIXES:
 1. [Specific actionable fix]
@@ -85,7 +93,7 @@ SCORING RUBRIC FOR MEN'S WALL:
 - Clean Presentation (25 pts): Straight bars, organized appearance, proper spacing
 - Fixture Integrity (15 pts): Only apparel on apparel fixtures, no bags/accessories mixed in
 
-Focus on what's VISIBLE. If you can't verify something, note it but don't penalize heavily. Be direct and actionable.
+Focus on what's VISIBLE. If you can't verify something, mark it N/A but don't penalize. Be direct and actionable.
 `;
 
     console.log('Making API call to Claude...');
@@ -98,7 +106,7 @@ Focus on what's VISIBLE. If you can't verify something, note it but don't penali
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20240620',
+        model: 'claude-sonnet-4-5-20250929',
         max_tokens: 2000,
         messages: [{
           role: 'user',
