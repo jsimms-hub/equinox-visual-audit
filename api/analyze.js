@@ -17,10 +17,19 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const { image, fixtureType } = req.body;
+    const { image, imageType, fixtureType } = req.body;
 
     if (!image || !fixtureType) {
       return res.status(400).json({ error: 'Missing image or fixture type' });
+    }
+
+    // Determine media type from imageType or default to jpeg
+    let mediaType = 'image/jpeg';
+    if (imageType) {
+      mediaType = imageType;
+    } else if (image.startsWith('data:')) {
+      const match = image.match(/data:(image\/[^;]+);/);
+      if (match) mediaType = match[1];
     }
 
     const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
@@ -89,7 +98,7 @@ Focus on what's VISIBLE. If you can't verify something, note it but don't penali
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-3-5-sonnet-20240620',
         max_tokens: 2000,
         messages: [{
           role: 'user',
@@ -98,7 +107,7 @@ Focus on what's VISIBLE. If you can't verify something, note it but don't penali
               type: 'image',
               source: {
                 type: 'base64',
-                media_type: 'image/jpeg',
+                media_type: mediaType,
                 data: image.split(',')[1] || image
               }
             },
