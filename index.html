@@ -20,7 +20,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -162,22 +162,38 @@
             100% { transform: rotate(360deg); }
         }
 
-        .results {
+        .results-container {
             display: none;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 30px;
         }
 
-        .results.show {
-            display: block;
+        .results-container.show {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 30px;
             animation: fadeIn 0.5s ease;
         }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        .results-image {
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+
+        .results-image img {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .results-content {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 30px;
         }
 
         .score-display {
@@ -265,7 +281,16 @@
             display: block;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 1024px) {
+            .results-container.show {
+                grid-template-columns: 1fr;
+            }
+
+            .results-image {
+                position: relative;
+                top: 0;
+            }
+
             h1 {
                 font-size: 1.8rem;
             }
@@ -298,7 +323,7 @@
             <label for="photoUpload" class="upload-btn">
                 📸 Upload Photo
             </label>
-            <input type="file" id="photoUpload" accept="image/*">
+            <input type="file" id="photoUpload" accept="image/*" capture="environment">
         </div>
 
         <button class="analyze-btn" id="analyzeBtn" onclick="analyzePhoto()" disabled>
@@ -312,42 +337,48 @@
             <p>Analyzing display...</p>
         </div>
 
-        <div class="results" id="results">
-            <div class="score-display">
-                <div class="score-number" id="scoreNumber">--</div>
-                <div class="score-label">Overall Score</div>
+        <div class="results-container" id="resultsContainer">
+            <div class="results-image">
+                <img id="resultsImage" alt="Analyzed photo">
             </div>
+            
+            <div class="results-content">
+                <div class="score-display">
+                    <div class="score-number" id="scoreNumber">--</div>
+                    <div class="score-label">Overall Score</div>
+                </div>
 
-            <div class="section">
-                <h2 class="section-title">Breakdown</h2>
-                <div id="breakdown"></div>
+                <div class="section">
+                    <h2 class="section-title">Breakdown</h2>
+                    <div id="breakdown"></div>
+                </div>
+
+                <div class="section">
+                    <h2 class="section-title">Top Fixes</h2>
+                    <ul class="fixes-list" id="fixesList"></ul>
+                </div>
+
+                <div class="section">
+                    <h2 class="section-title">What's Working</h2>
+                    <ul class="working-list" id="workingList"></ul>
+                </div>
+
+                <button class="analyze-btn" onclick="resetForm()">
+                    Analyze Another Display
+                </button>
             </div>
-
-            <div class="section">
-                <h2 class="section-title">Top Fixes</h2>
-                <ul class="fixes-list" id="fixesList"></ul>
-            </div>
-
-            <div class="section">
-                <h2 class="section-title">What's Working</h2>
-                <ul class="working-list" id="workingList"></ul>
-            </div>
-
-            <button class="analyze-btn" onclick="resetForm()">
-                Analyze Another Display
-            </button>
         </div>
     </div>
 
     <script>
-        // API endpoint - update this after deploying to Vercel
         const API_ENDPOINT = '/api/analyze';
-
         let currentImage = null;
+        let currentImageType = 'image/jpeg';
 
         document.getElementById('photoUpload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
+                currentImageType = file.type;
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     currentImage = e.target.result;
@@ -379,7 +410,7 @@
             const fixtureType = document.getElementById('fixtureType').value;
             
             document.getElementById('loading').classList.add('show');
-            document.getElementById('results').classList.remove('show');
+            document.getElementById('resultsContainer').classList.remove('show');
             document.getElementById('analyzeBtn').disabled = true;
 
             try {
@@ -390,6 +421,7 @@
                     },
                     body: JSON.stringify({
                         image: currentImage,
+                        imageType: currentImageType,
                         fixtureType: fixtureType
                     })
                 });
@@ -421,8 +453,11 @@
             const fixesSection = evaluation.match(/TOP FIXES:(.*?)(?=WHAT'S WORKING:|$)/s);
             const workingSection = evaluation.match(/WHAT'S WORKING:(.*?)$/s);
 
-            // Display score
-            document.getElementById('scoreNumber').textContent = score;
+            // Display score with "of 100"
+            document.getElementById('scoreNumber').textContent = score + ' of 100';
+
+            // Show analyzed image
+            document.getElementById('resultsImage').src = currentImage;
 
             // Display breakdown
             if (breakdownSection) {
@@ -449,7 +484,10 @@
                 ).join('');
             }
 
-            document.getElementById('results').classList.add('show');
+            document.getElementById('resultsContainer').classList.add('show');
+            
+            // Scroll to results
+            document.getElementById('resultsContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         function resetForm() {
@@ -458,7 +496,7 @@
             document.getElementById('uploadSection').classList.remove('has-image');
             document.getElementById('photoUpload').value = '';
             document.getElementById('fixtureType').value = '';
-            document.getElementById('results').classList.remove('show');
+            document.getElementById('resultsContainer').classList.remove('show');
             document.getElementById('analyzeBtn').disabled = true;
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
